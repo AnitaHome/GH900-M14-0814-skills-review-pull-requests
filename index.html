@@ -11,6 +11,34 @@
     text-align: center;
     font-family: system-ui, sans-serif;
   }
+  :root {
+    color-scheme: light;
+    --page-background: #fff;
+    --page-color: #222;
+    --control-background: #eee;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page-background: #222;
+      --page-color: #ccc;
+      --control-background: #444;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page-background: #222;
+    --page-color: #ccc;
+    --control-background: #444;
+  }
+  body {
+    background: var(--page-background);
+    color: var(--page-color);
+  }
+  button {
+    background: var(--control-background);
+    color: var(--page-color);
+  }
   td {
     height: 3rem;
     width: 3rem;
@@ -19,16 +47,12 @@
   table {
     margin: 5rem auto;
   }
-  @media (prefers-color-scheme: dark) {
-    body,
-    input {
-      background: #222;
-      color: #ccc;
-    }
-  }
 </style>
 
 <h1>Tic Tac Toe</h1>
+<button id="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+  Dark mode: Off
+</button>
 
 <table>
   <tr>
@@ -79,8 +103,41 @@
   );
   const gameOver = document.querySelector("h2");
   const playAgainBtn = document.getElementById("play-again");
+  const themeToggle = document.getElementById("theme-toggle");
   const HUMAN = "🧑‍💻";
   const ROBOT = "🤖";
+
+  let savedTheme;
+  try {
+    savedTheme = localStorage.getItem("theme");
+  } catch {}
+  if (savedTheme === "dark" || savedTheme === "light") {
+    document.documentElement.dataset.theme = savedTheme;
+  }
+
+  function isDarkTheme() {
+    return (
+      document.documentElement.dataset.theme === "dark" ||
+      (!document.documentElement.dataset.theme &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+    );
+  }
+
+  function updateThemeToggle() {
+    const isDark = isDarkTheme();
+    themeToggle.textContent = `Dark mode: ${isDark ? "On" : "Off"}`;
+    themeToggle.setAttribute("aria-pressed", String(isDark));
+  }
+
+  updateThemeToggle();
+  themeToggle.addEventListener("click", () => {
+    const theme = isDarkTheme() ? "light" : "dark";
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {}
+    updateThemeToggle();
+  });
 
   // Decide who goes first
   if (Math.random() > 0.5) {
